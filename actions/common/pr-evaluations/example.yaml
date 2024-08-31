@@ -1,18 +1,18 @@
 ---
-name: Example workflow for PR evaluations
+name: PR evaluations
 
 on:
   push:
     branches:
       - main
   pull_request:
-    types: 
+    types:
       - opened
       - synchronize
       - reopened
       - ready_for_review
       - edited
-    branches: 
+    branches:
       - main
 
 jobs:
@@ -37,12 +37,13 @@ jobs:
 
   semantic-pr-check:
     runs-on: ubuntu-latest
-    if: ${{ github.event.action == 'edited' ||
-            github.event,changes.title != null }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
       - name: Semantic PR check
         uses: elixir-cloud-aai/actions/common/semantic-pr-title@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pr_title: ${{ github.event.pull_request.title }}
 ...
