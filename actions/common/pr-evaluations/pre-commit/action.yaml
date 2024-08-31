@@ -1,0 +1,15 @@
+---
+name: Pre commit checks
+description: Runs all pre-commit checks defined in .pre-commit-config.yaml
+
+runs:
+  using: composite
+  steps:
+    - name: Install pre-commit
+      shell: bash
+      run: apt install -y pre-commit
+
+    - name: Run pre-commit checks
+      shell: bash
+      run: pre-commit run --all-files
+...
