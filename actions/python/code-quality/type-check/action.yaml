@@ -1,6 +1,6 @@
 ---
 name: Type Check
-description: Runs a type check on the codebase to ensure type safety and 
+description: Runs a type check on the codebase to ensure type safety and
   correctness.
 
 inputs:
@@ -13,7 +13,7 @@ inputs:
     required: false
     default: "--with=code_quality --with=types --no-root"
   poetry_export_options:
-    description: Options for exporting dependencies to check for hash 
+    description: Options for exporting dependencies to check for hash
       changes for cache invalidation
     required: false
     default: "--with=code_quality --with=types"

@@ -1,6 +1,7 @@
 ---
 name: Format Code
-description: Checks and ensures the code is formatted according to the defined style guidelines.
+description: Checks and ensures the code is formatted according to the defined
+  style guidelines.
 
 inputs:
   python_version:
@@ -12,7 +13,7 @@ inputs:
     required: false
     default: "--only=code_quality --no-root"
   poetry_export_options:
-    description: Options for exporting dependencies to check for hash 
+    description: Options for exporting dependencies to check for hash
       changes for cache invalidation
     required: false
     default: "--only=code_quality"

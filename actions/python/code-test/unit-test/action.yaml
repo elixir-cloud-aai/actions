@@ -1,0 +1,52 @@
+---
+name: Unit Test
+description: Set up environment, run unit tests, and upload coverage report.
+
+inputs:
+  os:
+    default: ubuntu-latest
+    description: The operating system to use
+  python_version:
+    default: '3.11'
+    description: The version of Python to use
+  poetry_install_options:
+    default: '--with=test'
+    description: Options for installing dependencies via poetry
+  poetry_export_options:
+    default: '--with=test'
+    description: Options for exporting dependencies for cache invalidation
+  codecov_token:
+    description: Codecov token for uploading coverage reports
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Set up environment
+      uses: elixir-cloud-aai/actions/python/setup/poetry@main
+      with:
+        os: ${{ inputs.os }}
+        python_version: ${{ inputs.python_version }}
+        poetry_install_options: ${{ inputs.poetry_install_options }}
+        poetry_export_options: ${{ inputs.poetry_export_options }}
+
+    - name: Run unit tests and generate coverage report
+      shell: bash
+      run: |
+        poetry run pytest \
+          --cov-report term \
+          --cov-report xml:test_unit.xml \
+          --cov=tests/test_unit
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ inputs.codecov_token }}
+        flags: test_unit
+        files: ./test_unit.xml
+        fail_ci_if_error: true
+        verbose: true
+...
