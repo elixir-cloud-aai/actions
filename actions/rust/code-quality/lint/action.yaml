@@ -1,0 +1,31 @@
+---
+name: Clippy Lint Check
+description: Checks that the code does not contain any Clippy warnings
+
+inputs:
+  toolchain:
+    description: The Rust toolchain to use
+    required: false
+    default: stable
+  github_token:
+    description: The GitHub token to use
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Install ${{ inputs.toolchain }}
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: ${{ inputs.toolchain }}
+        components: clippy
+
+    - name: cargo clippy
+      uses: giraffate/clippy-action@v1
+      with:
+        reporter: 'github-pr-check'
+        github_token: ${{ inputs.github_token }}
+...

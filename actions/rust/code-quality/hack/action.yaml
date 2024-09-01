@@ -1,0 +1,21 @@
+name: Hack
+description: Check feature flag combinations with cargo-hack
+
+runs:
+  using: composite
+  steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+      with:
+        submodules: true
+
+    - name: Install stable Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Install cargo-hack
+      uses: taiki-e/install-action@cargo-hack
+
+    - name: Run cargo hack
+      shell: bash
+      run: cargo hack --feature-powerset check
+...
