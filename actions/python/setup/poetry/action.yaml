@@ -7,26 +7,26 @@ inputs:
     default: ubuntu-latest
     description: The operating system to use
   python_version:
-    default: '3.11'
+    default: "3.12"
     description: The version of Python to use
   poetry_version:
-    default: '1.8.2'
+    default: "1.8.2"
     description: The version of Poetry to install
   poetry_install_options:
-    default: ''
+    default: ""
     description: Additional options to pass to poetry install
   poetry_export_options:
-    default: ''
+    default: ""
     description: Options to pass to poetry export for hash generation for cache
       invalidation
 
 runs:
   using: composite
   steps:
-    - uses: 'actions/setup-python@v5'
+    - uses: "actions/setup-python@v5"
       id: setup-python
       with:
-        python-version: '${{ inputs.python_version }}'
+        python-version: "${{ inputs.python_version }}"
 
     - name: Setup pipx environment Variables
       id: pipx-env-setup

@@ -6,18 +6,26 @@ inputs:
   os:
     default: ubuntu-latest
     description: The operating system to use
+    required: false
   python_version:
-    default: '3.11'
+    default: "3.12"
     description: The version of Python to use
+    required: false
   poetry_install_options:
-    default: '--with=test'
+    default: "--with=test"
     description: Options for installing dependencies via poetry
+    required: false
   poetry_export_options:
-    default: '--with=test'
+    default: "--with=test"
     description: Options for exporting dependencies for cache invalidation
+    required: false
   codecov_token:
     description: Codecov token for uploading coverage reports
     required: true
+  file_path:
+    description: The path to the file or directory to unit test
+    required: false
+    default: "tests/test_unit"
 
 runs:
   using: composite
@@ -39,7 +47,7 @@ runs:
         poetry run pytest \
           --cov-report term \
           --cov-report xml:test_unit.xml \
-          --cov=tests/test_unit
+          --cov=${{ inputs.file_path }}
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
