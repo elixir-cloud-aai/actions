@@ -30,11 +30,11 @@ runs:
       uses: actions/checkout@v4
 
     - name: Set up environment
-      uses: ./.github/actions/setup/poetry
+      uses: elixir-cloud-aai/actions/python/setup/poetry@main
       with:
-        python-version: ${{ inputs.python_version }}
-        poetry-install-options: ${{ inputs.poetry_install_options }}
-        poetry-export-options: ${{ inputs.poetry_export_options }}
+        python_version: ${{ inputs.python_version }}
+        poetry_install_options: ${{ inputs.poetry_install_options }}
+        poetry_export_options: ${{ inputs.poetry_export_options }}
 
     - name: Check types
       shell: bash

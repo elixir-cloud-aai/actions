@@ -26,7 +26,7 @@ runs:
     - uses: 'actions/setup-python@v5'
       id: setup-python
       with:
-        python_version: '${{ inputs.python_version }}'
+        python-version: '${{ inputs.python_version }}'
 
     - name: Setup pipx environment Variables
       id: pipx-env-setup
