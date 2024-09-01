@@ -1,0 +1,64 @@
+---
+name: Documentation Check
+description: Verifies that the API documentation is up to date.
+
+inputs:
+  os:
+    default: ubuntu-latest
+    description: The operating system to use
+    required: false
+  python_version:
+    default: "3.12"
+    description: The version of Python to use
+    required: false
+  poetry_install_options:
+    default: "--with=docs --with=types --no-root"
+    description: Options to pass to poetry install
+    required: false
+  poetry_export_options:
+    default: "--with=docs --with=types"
+    description: Options to pass to poetry export for cache invalidation
+    required: false
+  file_path:
+    description: File path for which the docs will be generated
+    required: true
+  auto_doc_dir:
+    description: Directory path that stores all the auto generated docs for
+      the packages
+    default: "/docs/source/pages"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up environment
+      uses: elixir-cloud-aai/actions/python/setup/poetry@main
+      with:
+        os: ${{ inputs.os }}
+        python-version: ${{ inputs.python_version }}
+        poetry-install-options: ${{ inputs.poetry_install_options }}
+        poetry-export-options: ${{ inputs.poetry_export_options }}
+
+    - name: Generate API docs
+      shell: bash
+      run: |
+        poetry run sphinx-apidoc  \
+          -o /tmp/docs/source/pages \
+          ${{ inputs.file_path }}/
+
+    - name: Compare current docs with latest docs
+      shell: bash
+      run: |
+        shasum /tmp/docs/source/pages/* > /tmp/docs.sha
+        shasum ${{ inputs.auto_doc_dir }}/* > docs/project_doc.sha
+        awk '{print $1}' /tmp/docs.sha > /tmp/docs_hashes.sha
+        awk '{print $1}' docs/project_doc.sha > docs/project_doc_hashes.sha
+        diff=$(diff /tmp/docs_hashes.sha docs/project_doc_hashes.sha) || true
+        if [[ -n "$diff" ]]; then
+          echo "::error::API documentation is out of date."
+          exit 1
+        else
+          echo "API documentation is up to date."
+...
