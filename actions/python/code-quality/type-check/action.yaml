@@ -20,7 +20,7 @@ inputs:
   file_path:
     description: The path to the file or directory to type check
     required: false
-    default: " . "
+    default: "."
 
 
 runs:
