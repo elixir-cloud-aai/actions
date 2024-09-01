@@ -1,0 +1,28 @@
+---
+name: Minimal Dependency Version Test
+description: Run the test suite with minimal versions of dependencies
+
+runs:
+  using: composite
+  steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Install stable Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Install nightly Rust
+      uses: dtolnay/rust-toolchain@nightly
+
+    - name: Set default Rust to stable
+      shell: bash
+      run: rustup default stable
+
+    - name: Update cargo with minimal versions
+      shell: bash
+      run: cargo +nightly update -Zminimal-versions
+
+    - name: Run tests with minimal versions
+      shell: bash
+      run: cargo test --locked --all-features --all-targets
+...

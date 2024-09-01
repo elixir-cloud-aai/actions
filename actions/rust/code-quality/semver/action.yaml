@@ -1,0 +1,18 @@
+---
+name: Semver
+description: Check semantic versioning with cargo-semver-checks
+
+runs:
+  using: composite
+  steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Install stable Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt
+
+    - name: Run cargo-semver-checks
+      uses: obi1kenobi/cargo-semver-checks-action@v2
+...

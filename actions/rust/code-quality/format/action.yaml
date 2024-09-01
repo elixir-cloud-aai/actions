@@ -1,0 +1,19 @@
+---
+name: Formatting Check
+description: Checks that the code is formatted according to rustfmt
+
+runs:
+  using: composite
+  steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Install stable
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt
+
+    - name: Check formatting
+      shell: bash
+      run: cargo fmt --check
+...

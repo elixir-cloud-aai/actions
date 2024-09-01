@@ -1,0 +1,57 @@
+---
+name: Unit Test
+description: Run the unit test suite and upload coverage to Codecov
+
+inputs:
+  toolchain:
+    description: Rust toolchain to test against
+    required: false
+    default: stable
+  github_token:
+    description: GitHub token to use
+    required: true
+  codecov_token:
+    description: Codecov token to upload coverage
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Install stable Rust
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: ${{ inputs.toolchain }}
+
+    - name: Generate lockfile if missing
+      shell: bash
+      if: hashFiles('Cargo.lock') == ''
+      run: cargo generate-lockfile
+
+    - name: Run unit tests with ${{ inputs.toolchain }} Rust
+      shell: bash
+      run: cargo test --lib --locked --all-features --all-targets
+
+    - name: Install stable Rust and LLVM tools
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: llvm-tools-preview
+
+    - name: Install cargo-llvm-cov
+      uses: taiki-e/install-action@cargo-llvm-cov
+
+    - name: Run cargo llvm-cov
+      shell: bash
+      run: cargo llvm-cov --lib --locked --all-features --lcov --output-path lcov.info
+
+    - name: Upload coverage report
+      uses: codecov/codecov-action@v4
+      with:
+        fail_ci_if_error: true
+        token: ${{ inputs.codecov_token }}
+        flags: unit-test
+        env_vars: OS,RUST,TOOLCHAIN=${{ inputs.toolchain }}
+        name: coverage-unit-${{ inputs.toolchain }}
+...

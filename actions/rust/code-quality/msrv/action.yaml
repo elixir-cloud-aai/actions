@@ -1,0 +1,25 @@
+---
+name: MSRV
+description: Check minimal supported Rust version
+
+inputs:
+  msrv:
+    description: The minimal supported Rust version
+    required: false
+    default: "1.56.1"
+
+runs:
+  using: composite
+  steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Install minimal supported Rust version
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: ${{ inputs.msrv }}
+
+    - name: Run cargo check with msrv ${{ inputs.msrv }}
+      shell: bash
+      run: cargo +${{ inputs.msrv }} check
+...
