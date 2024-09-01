@@ -1,0 +1,36 @@
+---
+name: Format Code
+description: Checks and ensures the code is formatted according to the defined style guidelines.
+
+inputs:
+  python_version:
+    description: Python version to use
+    default: "3.12"
+    required: false
+  poetry_install_options:
+    description: Options for installing dependencies via poetry
+    required: false
+    default: "--only=code_quality --no-root"
+  poetry_export_options:
+    description: Options for exporting dependencies to check for hash 
+      changes for cache invalidation
+    required: false
+    default: "--only=code_quality"
+
+runs:
+  using: composite
+  steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Set up environment
+      uses: ./actions/python/setup/poetry
+      with:
+        python-version: ${{ inputs.python_version }}
+        poetry-install-options: ${{ inputs.poetry_install_options }}
+        poetry-export-options: ${{ inputs.poetry_export_options }}
+
+    - name: Check code style
+      shell: bash
+      run: poetry run ruff format --check
+...
