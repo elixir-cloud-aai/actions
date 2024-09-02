@@ -1,0 +1,19 @@
+---
+name: Detect Unresolved Conflicts
+description: Detects unresolved merge conflicts in the repository.
+
+runs:
+  using: composite
+  steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Detect unresolved merge conflicts
+      shell: bash
+      run: |
+        git --no-pager grep "<<<<<<<" ":(exclude).github/" || true
+        if git grep "<<<<<<<" ":(exclude).github/" | wc --lines; then
+          echo "Merge conflict markers found!"
+          exit 1
+        fi
+...
