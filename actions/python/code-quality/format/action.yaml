@@ -4,6 +4,10 @@ description: Checks and ensures the code is formatted according to the defined
   style guidelines.
 
 inputs:
+  os: 
+    description: The operating system to use
+    default: ubuntu-latest
+    required: false
   python_version:
     description: Python version to use
     default: "3.12"
@@ -26,12 +30,61 @@ runs:
 
     - name: Set up environment
       uses: elixir-cloud-aai/actions/python/setup/poetry@main
+      id: setup
+      continue-on-error: true
       with:
+        os: ${{ inputs.os }}
         python_version: ${{ inputs.python_version }}
         poetry_install_options: ${{ inputs.poetry_install_options }}
         poetry_export_options: ${{ inputs.poetry_export_options }}
 
+    - name: Comment on PR
+      if: steps.setup.outcome == 'failure'
+      uses: elixir-cloud-aai/actions/github/comment@main
+      with:
+        ci_name: format
+        step_name: setup
+        commit_id: ${{ github.sha }}
+        issue-number: ${{ github.event.number }}
+        username: ${{ github.actor}}
+        message: |
+          Check your `pyproject.toml` and the dependency groups in them,
+          especially the `code_quality` group.
+          
+          <details>
+          <summary>Env used for CI</summary>
+            OS: ${{ inputs.os }}
+            Python Version: ${{ inputs.python_version }}
+            Poetry Install Options: ${{ inputs.poetry_install_options }}
+            Poetry Export Options: ${{ inputs.poetry_export_options }}
+          </details>
+
     - name: Check code style
+      id: format
+      continue-on-error: true
       shell: bash
       run: poetry run ruff format --check
+
+    - name: Comment on PR
+      if: steps.format.outcome == 'failure'
+      uses: elixir-cloud-aai/actions/github/comment@main
+      with:
+        ci_name: format
+        step_name: format
+        commit_id: ${{ github.sha }}
+        issue-number: ${{ github.event.number }}
+        username: ${{ github.actor}}
+        message: |
+          With the environment set up and dependencies installed, 
+          run `poetry run ruff format` to check and fix some code style issues.
+          
+          <details>
+          <summary>Use Makefile command</summary>
+            Default makefile from cookiecutter template has a command 
+            `make fl` to run the check.
+
+            Run make in the root directory of the project, to see all the 
+            available commands.
+          </details>
 ...
+q

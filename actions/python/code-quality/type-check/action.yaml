@@ -4,6 +4,10 @@ description: Runs a type check on the codebase to ensure type safety and
   correctness.
 
 inputs:
+  os:
+    description: The operating system to use
+    required: false
+    default: "ubuntu-latest"
   python_version:
     description: Python version to use
     default: "3.12"
@@ -31,12 +35,81 @@ runs:
 
     - name: Set up environment
       uses: elixir-cloud-aai/actions/python/setup/poetry@main
+      id: setup
+      continue-on-error: true
       with:
+        os: ${{ inputs.os }}
         python_version: ${{ inputs.python_version }}
         poetry_install_options: ${{ inputs.poetry_install_options }}
         poetry_export_options: ${{ inputs.poetry_export_options }}
 
+    - name: Comment on PR
+      if: steps.setup.outcome == 'failure'
+      uses: elixir-cloud-aai/actions/github/comment@main
+      with:
+        ci_name: type-check
+        step_name: setup
+        commit_id: ${{ github.sha }}
+        issue-number: ${{ github.event.number }}
+        username: ${{ github.actor}}
+        message: |
+          Check your `pyproject.toml` and the dependency groups in them,
+          especially `code_quality` and `types` group.
+          
+          <details>
+          <summary>Env used for CI</summary>
+            OS: ${{ inputs.os }}
+            Python Version: ${{ inputs.python_version }}
+            Poetry Install Options: ${{ inputs.poetry_install_options }}
+            Poetry Export Options: ${{ inputs.poetry_export_options }}
+          </details>
+
     - name: Check types
+      id: type-check
+      continue-on-error: true
       shell: bash
       run: poetry run mypy ${{ inputs.file_path }}
+
+    - name: Comment on PR
+      if: steps.type-check.outcome == 'failure'
+      uses: elixir-cloud-aai/actions/github/comment@main
+      with:
+        ci_name: type-check
+        step_name: type-check
+        commit_id: ${{ github.sha }}
+        issue-number: ${{ github.event.number }}
+        username: ${{ github.actor}}
+        message: |
+          With the environment set up and dependencies installed, 
+          run `run mypy ${{ inputs.file_path }}` to see mypy errors.
+          
+          <details>
+            <summary>Missing stubs or types</summary>
+            If you see errors related to missing stubs or types,
+            try running `poetry add types-<package> --group=types` or
+            `poetry add <package>-stub --group=types` to add type stubs.
+
+            If that fails, either the package does not have types/stubs
+            or they have different name.
+
+            In that case you can seach for them and add them to types group.
+          </details>
+
+          <details>
+            <summary>Ignore error</summary>
+            Add the module name in pyproject.toml under [tools.mypy.overrides]
+            section inside modules list.
+
+            ```toml
+            [[tool.mypy.overrides]]
+            ignore_missing_imports = true
+            module = [
+              "connexion.*",
+            ]
+            ```
+
+            Try to as granular as possible to avoid ignoring all errors. If 
+            you are using `x.y.z` import, add `x.y.z.*` to the list instead 
+            of `x.*`.
+          </details>
 ...
