@@ -1,0 +1,46 @@
+---
+name: Publish to PyPI
+description: Publishes the Python package to PyPI when a release is made.
+
+inputs:
+  os:
+    default: ubuntu-latest
+    description: The operating system to use
+    required: false
+  python_version:
+    default: "3.12"
+    description: The version of Python to use
+    required: false
+  poetry_install_options:
+    default: "--only=main"
+    description: Additional options to pass to poetry install
+    required: false
+  poetry_export_options:
+    default: "--only=main"
+    description: Options to pass to poetry export for cache invalidation
+    required: false
+  pypi_token:
+    description: PYPI token for release the package
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up environment
+      uses: elixir-cloud-aai/actions/python/setup/poetry@main
+      with:
+        os: ${{ inputs.os }}
+        python-version: ${{ inputs.python_version }}
+        poetry-install-options: ${{ inputs.poetry_install_options }}
+        poetry-export-options: ${{ inputs.poetry_export_options }}
+
+    - name: Build package
+      shell: bash
+      run: poetry build
+
+    - name: Publish package to PyPI
+      shell: bash
+      run: poetry publish -u __token__ -p ${{ inputs.pypi_token }}
+...
