@@ -1,0 +1,132 @@
+---
+name: Lint Code
+description: Lints the code to ensure code quality and adherence to standards.
+
+inputs:
+  os:
+    description: The operating system to use
+    default: ubuntu-latest
+    required: false
+  python_version:
+    description: Python version to use
+    default: "3.12"
+    required: false
+  poetry_install_options:
+    description: Options for installing dependencies via poetry
+    required: false
+    default: --only=code_quality --no-root
+  poetry_export_options:
+    description: Options for exporting dependencies to check for hash
+      changes for cache invalidation
+    required: false
+    default: --only=code_quality
+
+runs:
+  using: composite
+  steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Set up environment
+      uses: elixir-cloud-aai/actions/python/setup/poetry@main
+      continue-on-error: true
+      with:
+        os: ${{ inputs.os }}
+        python_version: ${{ inputs.python_version }}
+        poetry_install_options: ${{ inputs.poetry_install_options }}
+        poetry_export_options: ${{ inputs.poetry_export_options }}
+
+    - name: Comment on PR
+      if: steps.setup.outcome == 'failure'
+      uses: elixir-cloud-aai/actions/github/comment@main
+      with:
+        ci_name: lint
+        step_name: setup
+        commit_id: ${{ github.sha }}
+        issue_number: ${{ github.event.number }}
+        username: ${{ github.actor}}
+        message: |
+          **🚨 CI Failure: Setup Step**
+
+          Hi @${{ inputs.username }},
+
+          The **`lint`** CI has encountered a failure during the
+          **`setup`** step.
+
+          **Action Required:**
+          Please review your `pyproject.toml` file to ensure that the dependency groups,
+          especially the `code_quality` group, are correctly defined.
+
+          **Environment Details:**
+          <details>
+          <summary>Enviroment</summary>
+          - **Operating System:** ${{ inputs.os }}
+          - **Python Version:** ${{ inputs.python_version }}
+          - **Poetry Install Options:** `${{ inputs.poetry_install_options }}`
+          - **Poetry Export Options:** `${{ inputs.poetry_export_options }}`
+          </details>
+
+          If you need assistance, please refer to the [Poetry documentation](https://python-poetry.org/docs/),
+          or reach out to the maintainers.
+
+    - name: Check code quality
+      shell: bash
+      id: lint
+      run: poetry run ruff check .
+
+    - name: Comment on PR
+      if: steps.lint.outcome == 'failure'
+      uses: elixir-cloud-aai/actions/github/comment@main
+      with:
+        ci_name: format
+        step_name: format
+        commit_id: ${{ github.sha }}
+        issue_number: ${{ github.event.number }}
+        username: ${{ github.actor}}
+        message: |
+          **🐍 Linting Issues Detected: Ruff Analysis**
+
+          Hi @${{ inputs.username }},
+
+          The **Ruff** linter has identified issues in your codebase.
+
+          ---
+
+          ### **📌 Action Required**
+
+          1. **Run Ruff Locally:**
+
+             Execute the following command to check and automatically fix
+             linting issues:
+
+             ```bash
+             poetry run ruff check --fix ${{ inputs.file_path }}
+
+          ---
+
+          ### **ℹ️ Additional Information**
+
+          <details>
+          <summary>Using the Makefile Command</summary>
+
+          For convenience, you can use the predefined Makefile command to run Ruff:
+
+          ```bash
+          make fl
+          ```
+
+          **Note:**
+          - Ensure you are in the root directory of your project before running
+            this command.
+          - The default Makefile from the Cookiecutter template includes the
+            `make fl` command. You can view all available Makefile commands by
+            running `make` without any arguments.
+
+          </details>
+
+          ---
+
+          ### **🔗 Useful Resources**
+
+          - [Ruff Documentation](https://docs.astral.sh/ruff/)
+...

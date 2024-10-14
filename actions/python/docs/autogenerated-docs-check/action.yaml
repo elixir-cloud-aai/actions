@@ -1,0 +1,193 @@
+---
+name: Documentation Check
+description: Verifies that the API documentation is up to date.
+
+inputs:
+  os:
+    default: ubuntu-latest
+    description: The operating system to use
+    required: false
+  python_version:
+    default: "3.12"
+    description: The version of Python to use
+    required: false
+  poetry_install_options:
+    default: --with=docs --with=types --no-root
+    description: Options to pass to poetry install
+    required: false
+  poetry_export_options:
+    default: --with=docs --with=types
+    description: Options to pass to poetry export for cache invalidation
+    required: false
+  file_path:
+    description: File path for which the docs will be generated, default to the
+      package name from the pyproject.toml
+    required: false
+  auto_doc_dir:
+    description: Directory path that stores all the auto generated docs for
+      the packages
+    default: /docs/source/pages
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Set up environment
+      id: setup
+      uses: elixir-cloud-aai/actions/python/setup/poetry@main
+      continue-on-error: true
+      with:
+        os: ${{ inputs.os }}
+        python-version: ${{ inputs.python_version }}
+        poetry-install-options: ${{ inputs.poetry_install_options }}
+        poetry-export-options: ${{ inputs.poetry_export_options }}
+
+    - name: Comment on PR
+      if: steps.setup.outcome == 'failure'
+      uses: elixir-cloud-aai/actions/github/comment@main
+      with:
+        ci_name: docs
+        step_name: setup
+        commit_id: ${{ github.sha }}
+        issue_number: ${{ github.event.number }}
+        username: ${{ github.actor}}
+        message: |
+          **🚨 CI Failure: Setup Step**
+
+          Hi @${{ inputs.username }},
+
+          The **`docs check`** CI has encountered a failure during the
+          **`setup`** step.
+
+          **Action Required:**
+          Please review your `pyproject.toml` file to ensure that the dependency groups,
+          especially the `docs`, `main` and `types` group, are correctly defined.
+
+          **Environment Details:**
+          <details>
+          <summary>Enviroment</summary>
+          - **Operating System:** ${{ inputs.os }}
+          - **Python Version:** ${{ inputs.python_version }}
+          - **Poetry Install Options:** `${{ inputs.poetry_install_options }}`
+          - **Poetry Export Options:** `${{ inputs.poetry_export_options }}`
+          </details>
+
+          If you need assistance, please refer to the [Poetry documentation](https://python-poetry.org/docs/),
+          or reach out to the maintainers.
+
+    - name: Get the file_path if user doesn't provide it
+      id: get-file-path
+      shell: bash
+      run: |
+        if [[ -z "${{ inputs.file_path }}" ]]; then
+          file_path=$(poetry version | awk '{print $1}')
+        else
+          file_path="${{ inputs.file_path }}"
+        fi
+        echo "file_path=$file_path" >> $GITHUB_ENV
+
+    # This should not be possible, but just in case
+    - name: Comment on PR
+      if: ${{ env.file_path }} == ""
+      uses: elixir-cloud-aai/actions/github/comment@main
+      with:
+        ci_name: docs
+        step_name: get-file-path
+        commit_id: ${{ github.sha }}
+        issue_number: ${{ github.event.number }}
+        username: ${{ github.actor}}
+        message: |
+          Couldn't retrieve project name from `pyproject.toml` and
+          `file_path`` is not provided for the workflow.
+
+    - name: Generate API docs
+      shell: bash
+      run: |
+        poetry run sphinx-apidoc  \
+          -o /tmp/docs/source/pages \
+          ${{ env.file_path }}/
+
+    - name: Compare current docs with latest docs
+      shell: bash
+      id: compare-docs
+      continue-on-error: true
+      run: |
+        shasum /tmp/docs/source/pages/* > /tmp/docs.sha
+        shasum ${{ inputs.auto_doc_dir }}/* > docs/project_doc.sha
+        awk '{print $1}' /tmp/docs.sha > /tmp/docs_hashes.sha
+        awk '{print $1}' docs/project_doc.sha > docs/project_doc_hashes.sha
+        diff=$(diff /tmp/docs_hashes.sha docs/project_doc_hashes.sha) || true
+        if [[ -n "$diff" ]]; then
+          echo "::error::API documentation is out of date."
+          exit 1
+        else
+          echo "API documentation is up to date."
+
+    - name: Comment on PR
+      if: steps.compare-docs.outcome == 'failure'
+      uses: elixir-cloud-aai/actions/github/comment@main
+      with:
+        ci_name: docs
+        step_name: compare-docs
+        commit_id: ${{ github.sha }}
+        issue_number: ${{ github.event.number }}
+        username: ${{ github.actor}}
+        message: |
+          **🔧 API Documentation Outdated**
+
+          Hi @${{ inputs.username }},
+
+          The **API documentation** in the PR is outdated and needs to be
+          refreshed to reflect recent changes in the codebase.
+
+          ---
+
+          ### **📌 Action Required**
+
+          Please update the API documentation by following these steps:
+
+          1. **Run Sphinx-Apidoc:**
+
+            Execute the following command to regenerate the API documentation:
+
+            ```bash
+            poetry run sphinx-apidoc ${{ env.file_path }}
+            ```
+
+          2. **Verify Documentation:**
+
+            After running the command, review the generated documentation to
+            ensure it accurately represents the current state of your codebase.
+
+          ---
+
+          ### **ℹ️ Additional Information**
+
+          <details>
+          <summary>Using the Makefile Command</summary>
+
+          For convenience, you can use the predefined Makefile command to
+          update the documentation:
+
+          ```bash
+          make docs
+          ```
+
+          This command utilizes the `sphinx-apidoc` tool to regenerate the API
+          documentation based on your project's configuration.
+
+          **Note:** The default Makefile from the Cookiecutter template
+          includes the `make docs` command. Ensure you are in the root
+          directory of your project before running this command.
+
+          </details>
+
+          ---
+
+          ### **🔗 Useful Resources**
+
+          - [Sphinx-Apidoc Documentation](https://www.sphinx-doc.org/en/master/man/sphinx-apidoc.html)
+...

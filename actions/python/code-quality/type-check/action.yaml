@@ -1,0 +1,225 @@
+---
+name: Type Check
+description: Runs a type check on the codebase to ensure type safety and
+  correctness.
+
+inputs:
+  os:
+    description: The operating system to use
+    required: false
+    default: ubuntu-latest
+  python_version:
+    description: Python version to use
+    default: "3.12"
+    required: false
+  poetry_install_options:
+    description: Options for installing dependencies via poetry
+    required: false
+    default: --with=code_quality --with=types --no-root
+  poetry_export_options:
+    description: Options for exporting dependencies to check for hash
+      changes for cache invalidation
+    required: false
+    default: --with=code_quality --with=types
+  file_path:
+    description: The path to the file or directory to type check
+    required: false
+    default: "."
+
+runs:
+  using: composite
+  steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Set up environment
+      uses: elixir-cloud-aai/actions/python/setup/poetry@main
+      id: setup
+      continue-on-error: true
+      with:
+        os: ${{ inputs.os }}
+        python_version: ${{ inputs.python_version }}
+        poetry_install_options: ${{ inputs.poetry_install_options }}
+        poetry_export_options: ${{ inputs.poetry_export_options }}
+
+    - name: Comment on PR
+      if: steps.setup.outcome == 'failure'
+      uses: elixir-cloud-aai/actions/github/comment@main
+      with:
+        ci_name: type-check
+        step_name: setup
+        commit_id: ${{ github.sha }}
+        issue_number: ${{ github.event.number }}
+        username: ${{ github.actor}}
+        message: |
+          **🚨 CI Failure: Setup Step**
+
+          Hi @${{ inputs.username }},
+
+          The **`type check`** CI has encountered a failure during the
+          **`setup`** step.
+
+          **Action Required:**
+          Please review your `pyproject.toml` file to ensure that the dependency groups,
+          especially the `types` group, are correctly defined.
+
+          **Environment Details:**
+          <details>
+          <summary>Enviroment</summary>
+          - **Operating System:** ${{ inputs.os }}
+          - **Python Version:** ${{ inputs.python_version }}
+          - **Poetry Install Options:** `${{ inputs.poetry_install_options }}`
+          - **Poetry Export Options:** `${{ inputs.poetry_export_options }}`
+          </details>
+
+          If you need assistance, please refer to the [Poetry documentation](https://python-poetry.org/docs/),
+          or reach out to the maintainers.
+
+    - name: Check types
+      id: type-check
+      continue-on-error: true
+      shell: bash
+      run: poetry run mypy ${{ inputs.file_path }}
+
+    - name: Comment on PR
+      if: steps.type-check.outcome == 'failure'
+      uses: elixir-cloud-aai/actions/github/comment@main
+      with:
+        ci_name: type-check
+        step_name: type-check
+        commit_id: ${{ github.sha }}
+        issue_number: ${{ github.event.number }}
+        username: ${{ github.actor}}
+        message: |
+          **⚠️ Type Checking Failed: Mypy Analysis**
+
+          Hi @${{ inputs.username }},
+
+          The **mypy** static type checker has identified type-related issues
+          in your codebase.
+
+          ---
+
+          ### **📌 Action Required**
+
+          1. **Run Mypy Locally:**
+
+            Execute the following command to run **mypy** and view detailed
+            error reports:
+
+            ```bash
+            poetry run mypy ${{ inputs.file_path }}
+            ```
+
+          2. **Address Identified Issues:**
+
+            - **Missing Stubs or Types:** Resolve any missing type annotations
+               or stubs as indicated by the error messages.
+            - **Type Inconsistencies:** Correct any type mismatches or
+              inconsistencies highlighted by **mypy**.
+
+          ---
+
+          ### **ℹ️ Additional Information**
+
+          <details>
+          <summary>Handling Missing Stubs or Types</summary>
+
+          If you encounter errors related to missing stubs or types, follow
+          these steps:
+
+          1. **Add Type Stubs:**
+
+            Install type stubs for the affected packages using Poetry:
+
+            ```bash
+            poetry add types-<package> --group=types
+            ```
+
+            *Example:*
+
+            ```bash
+            poetry add types-requests --group=types
+            ```
+
+            Alternatively, you can install stub packages if available:
+
+            ```bash
+            poetry add <package>-stub --group=types
+            ```
+
+            *Example:*
+
+            ```bash
+            poetry add requests-stubs --group=types
+            ```
+
+          2. **Manual Stub Creation:**
+
+            If the package does not provide official stubs or if they are named
+            differently, you may need to create custom stubs or search for
+            third-party stubs.
+
+            - **Search for Stubs:** Look for community-maintained stubs on
+              repositories like [Typeshed](https://github.com/python/typeshed)
+              or [Stub Packages](https://pypi.org/search/?q=stub).
+
+          3. **Update `pyproject.toml`:**
+
+            Ensure your `pyproject.toml` includes the `types` group for
+            type stubs:
+
+            ```toml
+            [tool.poetry.group.types.dependencies]
+            types-<package> = "^<version>"
+            ```
+
+            *Example:*
+
+            ```toml
+            [tool.poetry.group.types.dependencies]
+            types-requests = "^2.25.11"
+            ```
+
+          </details>
+
+          <details>
+          <summary>Ignoring Specific Errors</summary>
+
+          If certain type errors are not relevant or are false positives, you
+          can configure **mypy** to ignore them. Add the module names under the
+          `[tool.mypy.overrides]` section in your `pyproject.toml`:
+
+          ```toml
+          [[tool.mypy.overrides]]
+          ignore_missing_imports = true
+          module = [
+            "connexion.*",
+          ]
+          ```
+
+          - **Granular Ignoring:** To avoid ignoring all errors, specify the
+            modules as granularly as possible. For instance, if you are using `x.y.z`
+            imports, add `x.y.z.*` instead of `x.*`.
+
+          *Example:*
+
+          ```toml
+          [[tool.mypy.overrides]]
+          ignore_missing_imports = true
+          module = [
+            "connexion.api.*",
+            "connexion.server.*",
+          ]
+          ```
+
+          </details>
+
+          ---
+
+          ### **🔗 Useful Resources**
+
+          - [Mypy Documentation](https://mypy.readthedocs.io/en/stable/)
+          - [Typeshed Repository](https://github.com/python/typeshed)
+          - [Best Practices for Type Checking](https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html)
+...

@@ -1,0 +1,16 @@
+---
+extends: default
+
+rules:
+  # Rule to enforce the use of double quotes
+  quoted-strings:
+    quote-type: double
+    required: false
+  # Additional rules can be configured as needed
+  line-length:
+    max: 120
+    level: warning
+  indentation:
+    spaces: 2
+  document-start: disable
+...

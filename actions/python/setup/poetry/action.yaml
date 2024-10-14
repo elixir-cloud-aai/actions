@@ -1,0 +1,151 @@
+---
+name: Setup Python and Poetry Action
+description: Configure env, Python, Poetry, deps and cache management.
+
+inputs:
+  os:
+    default: ubuntu-latest
+    description: The operating system to use
+  python_version:
+    default: "3.12"
+    description: The version of Python to use
+  dependencies:
+    default: ""
+    description: >
+      A comma-separated list of dependencies to install via Poetry.
+      Example: "flask,black,flake8". If this option is provided, all other
+      Poetry options related to project dependencies will be ignored.
+  # Below are the options for installing and caching dependencies via poetry
+  poetry_version:
+    default: "1.8.4"
+    description: The version of Poetry to install
+  poetry_install_options:
+    default: ""
+    description: Additional options to pass to poetry install
+  poetry_export_options:
+    default: ""
+    description: >
+      Options to pass to poetry export for hash generation for cache
+      invalidation
+
+runs:
+  using: composite
+  steps:
+    - uses: "actions/setup-python@v5"
+      id: setup-python
+      with:
+        python-version: "${{ inputs.python_version }}"
+
+    - name: Setup pipx environment Variables
+      id: pipx-env-setup
+      # pipx default home and bin dir are not writable by the cache action
+      # so override them here and add the bin dir to PATH for later steps.
+      # This also ensures the pipx cache only contains poetry
+      run: |
+        SEP="${{ !startsWith(runner.os, 'windows') && '/' || '\\' }}"
+        PIPX_CACHE="${{ github.workspace }}${SEP}pipx_cache"
+        echo "pipx-cache-path=${PIPX_CACHE}" >> $GITHUB_OUTPUT
+        echo "pipx-version=$(pipx --version)" >> $GITHUB_OUTPUT
+        echo "PIPX_HOME=${PIPX_CACHE}${SEP}home" >> $GITHUB_ENV
+        echo "PIPX_BIN_DIR=${PIPX_CACHE}${SEP}bin" >> $GITHUB_ENV
+        echo "PIPX_MAN_DIR=${PIPX_CACHE}${SEP}man" >> $GITHUB_ENV
+        echo "${PIPX_CACHE}${SEP}bin" >> $GITHUB_PATH
+      shell: bash
+
+    - name: Pipx poetry cache, check if poetry is cached
+      id: pipx-poetry-cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.pipx-env-setup.outputs.pipx-cache-path }}
+        key: >
+          ${{ runner.os }}-
+          py${{ inputs.python_version }}-
+          px${{ steps.pipx-env-setup.outputs.pipx-version }}-
+          pt${{ inputs.poetry_version }}
+
+    - name: Install poetry, if poetry is not cached
+      if: ${{ steps.pipx-poetry-cache.outputs.cache-hit != 'true' }}
+      id: install-poetry
+      shell: bash
+      run: |
+        pipx install poetry \
+        --python "${{ steps.setup-python.outputs.python-path }}"
+        pipx run poetry self add poetry-plugin-export@latest
+
+    - name: Read poetry cache location
+      id: poetry-cache-location
+      shell: bash
+      run: |
+        echo "poetry-venv-location=$(poetry config virtualenvs.path)" \
+        >> $GITHUB_OUTPUT
+
+    # Generate DEP_HASH based on dependencies or poetry export options
+    - name: Generate DEP_HASH
+      run: |
+        if [ -n "${{ inputs.dependencies }}" ]; then
+          # Generate hash from dependencies list
+          echo "DEP_HASH=$(
+            echo '${{ inputs.dependencies }}' |
+            tr ',' '\n' |
+            sort |
+            sha256sum |
+            cut -d ' ' -f1
+          )" >> $GITHUB_ENV
+        else
+          # Use poetry export options if provided
+          if [ -n "${{ inputs.poetry_export_options }}" ]; then
+            poetry export ${{ inputs.poetry_export_options }} \
+            --format=requirements.txt \
+            --output=requirements.txt
+          else
+            # Export all groups if no options provided
+            poetry export \
+            --format=requirements.txt \
+            --output=requirements.txt
+          fi
+          echo "DEP_HASH=$(
+            sha256sum requirements.txt |
+            cut -d ' ' -f 1
+          )" >> $GITHUB_ENV
+        fi
+      shell: bash
+
+    - name: Poetry dependency cache
+      uses: actions/cache@v4
+      id: poetry-dep-cache
+      if: ${{ inputs.dependencies != '' }}
+      with:
+        path: ${{ steps.poetry-cache-location.outputs.poetry-venv-location }}
+        key: >
+          ${{ runner.os }}-
+          py${{ inputs.python_version }}-
+          hash${{ env.DEP_HASH }}
+
+    - name: Install dependencies
+      if: ${{ inputs.dependencies != '' && steps.poetry-dep-cache.outputs.cache-hit != 'true' }}
+      shell: bash
+      run: |
+        # Initialize poetry if no pyproject.toml file is found
+        if [ ! -f pyproject.toml ]; then
+          poetry init --no-interaction
+        fi
+        # Install dependencies
+        poetry add $(echo ${{ inputs.dependencies }} | tr "," " ") --no-interaction
+
+    - name: Poetry cache
+      id: poetry-cache
+      uses: actions/cache@v4
+      if: ${{ inputs.dependencies == '' }}
+      with:
+        path: ${{ steps.poetry-cache-location.outputs.poetry-venv-location }}
+        key: >
+          ${{ runner.os }}-
+          py${{ inputs.python_version }}-
+          hash${{ env.DEP_HASH }}-
+          options${{ inputs.poetry_install_options }}
+
+    - name: Poetry install
+      if: ${{ inputs.dependencies == '' &&  steps.poetry-cache.outputs.cache-hit != 'true' }}
+      shell: bash
+      run: poetry install ${{ inputs.poetry_install_options }} --no-interaction
+...

@@ -1,0 +1,204 @@
+---
+name: Integration Test
+description: Set up environment, run integration tests, and upload coverage report.
+
+inputs:
+  os:
+    default: ubuntu-latest
+    description: The operating system to use
+    required: false
+  python_version:
+    default: "3.12"
+    description: The version of Python to use
+    required: false
+  poetry_install_options:
+    default: --with=test
+    description: Options for installing dependencies via poetry
+    required: false
+  poetry_export_options:
+    default: --with=test
+    description: Options for exporting dependencies for cache invalidation
+    required: false
+  codecov_token:
+    description: Codecov token for uploading coverage reports
+    required: true
+  file_path:
+    description: The path to the file or directory to integration test
+    required: false
+    default: tests/test_integration
+
+runs:
+  using: composite
+  steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Set up environment
+      uses: elixir-cloud-aai/actions/python/setup/poetry@main
+      continue-on-error: true
+      id: setup
+      with:
+        os: ${{ inputs.os }}
+        python_version: ${{ inputs.python_version }}
+        poetry_install_options: ${{ inputs.poetry_install_options }}
+        poetry_export_options: ${{ inputs.poetry_export_options }}
+
+    - name: Comment on PR
+      if: steps.setup.outcome == 'failure'
+      uses: elixir-cloud-aai/actions/github/comment@main
+      with:
+        ci_name: integration-test
+        step_name: setup
+        commit_id: ${{ github.sha }}
+        issue_number: ${{ github.event.number }}
+        username: ${{ github.actor}}
+        message: |
+          **🚨 CI Failure: Setup Step**
+
+          Hi @${{ inputs.username }},
+
+          The **`integration test`** CI has encountered a failure during the
+          **`setup`** step.
+
+          **Action Required:**
+          Please review your `pyproject.toml` file to ensure that the dependency groups,
+          especially the `test` and `main` groups, are correctly defined.
+
+          **Environment Details:**
+          <details>
+          <summary>Enviroment</summary>
+          - **Operating System:** ${{ inputs.os }}
+          - **Python Version:** ${{ inputs.python_version }}
+          - **Poetry Install Options:** `${{ inputs.poetry_install_options }}`
+          - **Poetry Export Options:** `${{ inputs.poetry_export_options }}`
+          </details>
+
+          If you need assistance, please refer to the [Poetry documentation](https://python-poetry.org/docs/),
+          or reach out to the maintainers.
+
+    - name: Run integration tests and generate coverage report
+      id: test
+      continue-on-error: true
+      shell: bash
+      run: |
+        poetry run pytest \
+          --cov-report term \
+          --cov-report xml:test_integration.xml \
+          --cov=${{ inputs.file_path }}
+
+    - name: Comment on PR
+      if: steps.upload.outcome == 'failure'
+      uses: elixir-cloud-aai/actions/github/comment@main
+      with:
+        ci_name: integration-test
+        step_name: test
+        commit_id: ${{ github.sha }}
+        issue_number: ${{ github.event.number }}
+        username: ${{ github.actor}}
+        message: |
+          **🧪 Unit Tests and Dependency Check Failed**
+
+          Hi @${{ inputs.username }},
+
+          The **integration tests** in have encountered failures.
+
+          ---
+
+          ### **📌 Action Required**
+
+          Please address the following to resolve the issues:
+
+          1. **Review integration Tests:**
+
+             - **File Path:** `${{ inputs.file_path }}`
+             - Examine the failing integration tests to identify the root
+              cause of the failures.
+
+          2. **Check Dependencies:**
+
+             - Open your `pyproject.toml` file.
+             - Ensure that all dependencies are correctly specified and
+              there are no version conflicts or missing packages.
+
+          3. **Run Tests Locally:**
+
+             Execute the following command to run the unit tests and view
+             detailed error reports:
+
+             ```bash
+             poetry run pytest --cov=${{ inputs.file_path }}
+             ```
+
+          ---
+
+          ### **🔗 Useful Resources**
+
+          - [Pytest Documentation](https://docs.pytest.org/en/latest/)
+          - [Best Practices for Writing Tests](https://docs.pytest.org/en/latest/goodpractices.html)
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      id: upload
+      with:
+        token: ${{ inputs.codecov_token }}
+        flags: test_integration
+        files: ./test_integration.xml
+        fail_ci_if_error: false
+        verbose: true
+
+    - name: Comment on PR
+      if: ${{ inputs.codecov_token }} == null || ${{ inputs.codecov_token }} == ''
+      uses: elixir-cloud-aai/actions/github/comment@main
+      with:
+        ci_name: integration-test
+        step_name: upload
+        commit_id: ${{ github.sha }}
+        issue_number: ${{ github.event.number }}
+        username: ${{ github.actor}}
+        message: |
+          **🚨 Codecov Token Missing**
+
+          Hi @${{ inputs.username }},
+
+          The **Codecov** token is missing from your repository's secrets. As
+          a result, the coverage report was successfully generated but **was not
+          uploaded** to Codecov.
+
+          ---
+
+          ### **📌 Action Required**
+
+          To ensure that coverage reports are uploaded correctly in future runs,
+          please follow these steps:
+
+          1. **Obtain the Codecov Token:**
+
+            - If you do not have the Codecov token, you can retrieve it from
+              [Codecov account](https://codecov.io/).
+            - Navigate to repository settings within Codecov to find the token.
+
+          2. **Add the Token to GitHub Secrets:**
+
+            - Go to your GitHub repository.
+            - Click on **Settings** > **Secrets and variables** > **Actions**.
+            - Click on **New repository secret**.
+            - Enter the following details:
+              - **Name:** `CODECOV_TOKEN`
+              - **Value:** *Your Codecov token*
+            - Click **Add secret** to save.
+
+          3. **Verify the Setup:**
+
+            - After adding the secret, trigger the workflow again to ensure
+              that the coverage report is uploaded successfully.
+            - Check the GitHub Actions logs and Codecov dashboard for
+              confirmation.
+
+          ---
+
+          ### **🔗 Useful Resources**
+
+          - [Codecov Documentation](https://docs.codecov.io/docs)
+          - [GitHub Actions Secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets)
+          - [Managing Secrets in GitHub](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository)
+...
