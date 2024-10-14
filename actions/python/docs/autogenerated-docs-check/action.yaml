@@ -8,15 +8,15 @@ inputs:
     description: The operating system to use
     required: false
   python_version:
-    default: "3.12"
+    default: '3.12'
     description: The version of Python to use
     required: false
   poetry_install_options:
-    default: "--with=docs --with=types --no-root"
+    default: '--with=docs --with=types --no-root'
     description: Options to pass to poetry install
     required: false
   poetry_export_options:
-    default: "--with=docs --with=types"
+    default: '--with=docs --with=types'
     description: Options to pass to poetry export for cache invalidation
     required: false
   file_path:
@@ -26,7 +26,7 @@ inputs:
   auto_doc_dir:
     description: Directory path that stores all the auto generated docs for
       the packages
-    default: "/docs/source/pages"
+    default: '/docs/source/pages'
     required: false
 
 runs:
@@ -52,12 +52,12 @@ runs:
         ci_name: docs
         step_name: setup
         commit_id: ${{ github.sha }}
-        issue-number: ${{ github.event.number }}
+        issue_number: ${{ github.event.number }}
         username: ${{ github.actor}}
         message: |
           Check your `pyproject.toml` and the dependency groups in them,
           especially `docs` and `types` group.
-          
+
           <details>
           <summary>Env used for CI</summary>
             OS: ${{ inputs.os }}
@@ -85,7 +85,7 @@ runs:
         ci_name: docs
         step_name: get-file-path
         commit_id: ${{ github.sha }}
-        issue-number: ${{ github.event.number }}
+        issue_number: ${{ github.event.number }}
         username: ${{ github.actor}}
         message: |
           Couldn't retrieve project name from `pyproject.toml` and 
@@ -121,7 +121,7 @@ runs:
         ci_name: docs
         step_name: compare-docs
         commit_id: ${{ github.sha }}
-        issue-number: ${{ github.event.number }}
+        issue_number: ${{ github.event.number }}
         username: ${{ github.actor}}
         message: |
           API documentation is out of date. Run 
@@ -135,4 +135,3 @@ runs:
             Default makefile from cookiecutter template has a command 
             `make docs` to run the sphinx-apidoc.
           </details>
-...

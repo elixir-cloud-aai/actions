@@ -3,23 +3,23 @@ name: Lint Code
 description: Lints the code to ensure code quality and adherence to standards.
 
 inputs:
-  os: 
+  os:
     description: The operating system to use
     default: ubuntu-latest
     required: false
   python_version:
     description: Python version to use
-    default: "3.12"
+    default: '3.12'
     required: false
   poetry_install_options:
     description: Options for installing dependencies via poetry
     required: false
-    default: "--only=code_quality --no-root"
+    default: '--only=code_quality --no-root'
   poetry_export_options:
     description: Options for exporting dependencies to check for hash
       changes for cache invalidation
     required: false
-    default: "--only=code_quality"
+    default: '--only=code_quality'
 
 runs:
   using: composite
@@ -43,11 +43,11 @@ runs:
         ci_name: lint
         step_name: setup
         commit_id: ${{ github.sha }}
-        issue-number: ${{ github.event.number }}
+        issue_number: ${{ github.event.number }}
         username: ${{ github.actor}}
         message: |
           Check your `pyproject.toml` and the dependency groups in them.
-          
+
           <details>
           <summary>Env used for CI</summary>
             OS: ${{ inputs.os }}
@@ -68,13 +68,13 @@ runs:
         ci_name: format
         step_name: format
         commit_id: ${{ github.sha }}
-        issue-number: ${{ github.event.number }}
+        issue_number: ${{ github.event.number }}
         username: ${{ github.actor}}
         message: |
           With the environment set up and dependencies installed, 
           run `poetry run ruff check --fix` to check and fix some lint 
           issues.
-          
+
           <details>
           <summary>Use Makefile command</summary>
             Default makefile from cookiecutter template has a command 
@@ -83,4 +83,3 @@ runs:
             Run make in the root directory of the project, to see all the 
             available commands.
           </details>
-...

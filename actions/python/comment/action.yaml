@@ -12,11 +12,11 @@ inputs:
   commit_id:
     description: The commit id to use
     required: true
-  error-after-comment:
+  error_after_comment:
     description: Stop the workflow after commenting
     required: false
-    default: "true"
-  issue-number:
+    default: 'true'
+  issue_number:
     description: The issue number to comment on
     required: true
   message:
@@ -27,8 +27,7 @@ inputs:
     required: true
   username:
     description: The username to tag in the message
-    default: jaeaeich
-    required: false
+    required: true
 
 runs:
   using: composite
@@ -41,12 +40,12 @@ runs:
         INPUT_USERNAME: ${{ inputs.username }}
         INPUT_CI_NAME: ${{ inputs.ci_name }}
         INPUT_STEP_NAME: ${{ inputs.step_name }}
-  
+
     - name: Find if comment is already present
       uses: peter-evans/find-comment@v3
       id: find-comment
       with:
-        issue-number: ${{ inputs.issue-number }}
+        issue_number: ${{ inputs.issue_number }}
         comment-author: 'github-actions[bot]'
         body-includes: ${{ steps.globals.outputs.TITLE }}
 
@@ -55,7 +54,7 @@ runs:
       id: fresh-comment
       uses: peter-evans/create-or-update-comment@v4
       with:
-        issue-number: ${{ inputs.issue-number }}
+        issue_number: ${{ inputs.issue_number }}
         body: |
           ${{ steps.globals.outputs.TITLE }}
           ${{ inputs.message }}
@@ -65,12 +64,17 @@ runs:
       uses: peter-evans/create-or-update-comment@v4
       with:
         comment-id: ${{ steps.find-comment.outputs.comment-id }}
-        issue-number: ${{ inputs.issue-number }}
+        issue_number: ${{ inputs.issue_number }}
         body: |
           Hey @${{ inputs.username }}, it failed again for commit ${{ inputs.commit_id }}!
-    
-    - name: Fail the workflow if error-after-comment is true
-      if: ${{ inputs.error-after-comment }}
+
+    - name: Fail or pass the workflow based on the input
       shell: bash
-      run: exit 1
+      run: |
+        if [[ "${{ inputs.error_after_comment }}" == "true" ]]; then
+          echo "Exiting the workflow as per the input"
+          exit 1
+        else
+          echo "Continuing the workflow as per the input"
+        fi
 ...

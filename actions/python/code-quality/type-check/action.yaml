@@ -7,25 +7,24 @@ inputs:
   os:
     description: The operating system to use
     required: false
-    default: "ubuntu-latest"
+    default: 'ubuntu-latest'
   python_version:
     description: Python version to use
-    default: "3.12"
+    default: '3.12'
     required: false
   poetry_install_options:
     description: Options for installing dependencies via poetry
     required: false
-    default: "--with=code_quality --with=types --no-root"
+    default: '--with=code_quality --with=types --no-root'
   poetry_export_options:
     description: Options for exporting dependencies to check for hash
       changes for cache invalidation
     required: false
-    default: "--with=code_quality --with=types"
+    default: '--with=code_quality --with=types'
   file_path:
     description: The path to the file or directory to type check
     required: false
-    default: "."
-
+    default: '.'
 
 runs:
   using: composite
@@ -50,12 +49,12 @@ runs:
         ci_name: type-check
         step_name: setup
         commit_id: ${{ github.sha }}
-        issue-number: ${{ github.event.number }}
+        issue_number: ${{ github.event.number }}
         username: ${{ github.actor}}
         message: |
           Check your `pyproject.toml` and the dependency groups in them,
           especially `code_quality` and `types` group.
-          
+
           <details>
           <summary>Env used for CI</summary>
             OS: ${{ inputs.os }}
@@ -77,12 +76,12 @@ runs:
         ci_name: type-check
         step_name: type-check
         commit_id: ${{ github.sha }}
-        issue-number: ${{ github.event.number }}
+        issue_number: ${{ github.event.number }}
         username: ${{ github.actor}}
         message: |
           With the environment set up and dependencies installed, 
           run `run mypy ${{ inputs.file_path }}` to see mypy errors.
-          
+
           <details>
             <summary>Missing stubs or types</summary>
             If you see errors related to missing stubs or types,
@@ -112,4 +111,3 @@ runs:
             you are using `x.y.z` import, add `x.y.z.*` to the list instead 
             of `x.*`.
           </details>
-...
