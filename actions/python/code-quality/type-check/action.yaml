@@ -7,24 +7,24 @@ inputs:
   os:
     description: The operating system to use
     required: false
-    default: 'ubuntu-latest'
+    default: ubuntu-latest
   python_version:
     description: Python version to use
-    default: '3.12'
+    default: "3.12"
     required: false
   poetry_install_options:
     description: Options for installing dependencies via poetry
     required: false
-    default: '--with=code_quality --with=types --no-root'
+    default: --with=code_quality --with=types --no-root
   poetry_export_options:
     description: Options for exporting dependencies to check for hash
       changes for cache invalidation
     required: false
-    default: '--with=code_quality --with=types'
+    default: --with=code_quality --with=types
   file_path:
     description: The path to the file or directory to type check
     required: false
-    default: '.'
+    default: "."
 
 runs:
   using: composite
@@ -56,7 +56,7 @@ runs:
 
           Hi @${{ inputs.username }},
 
-          The **`type check`** CI has encountered a failure during the 
+          The **`type check`** CI has encountered a failure during the
           **`setup`** step.
 
           **Action Required:**
@@ -92,104 +92,104 @@ runs:
         username: ${{ github.actor}}
         message: |
           **⚠️ Type Checking Failed: Mypy Analysis**
-          
+
           Hi @${{ inputs.username }},
-          
+
           The **mypy** static type checker has identified type-related issues
           in your codebase.
-          
+
           ---
-          
+
           ### **📌 Action Required**
-          
+
           1. **Run Mypy Locally:**
-            
-            Execute the following command to run **mypy** and view detailed 
+
+            Execute the following command to run **mypy** and view detailed
             error reports:
-            
+
             ```bash
             poetry run mypy ${{ inputs.file_path }}
             ```
-          
+
           2. **Address Identified Issues:**
-            
+
             - **Missing Stubs or Types:** Resolve any missing type annotations
                or stubs as indicated by the error messages.
-            - **Type Inconsistencies:** Correct any type mismatches or 
+            - **Type Inconsistencies:** Correct any type mismatches or
               inconsistencies highlighted by **mypy**.
-          
+
           ---
-          
+
           ### **ℹ️ Additional Information**
-          
+
           <details>
           <summary>Handling Missing Stubs or Types</summary>
-          
-          If you encounter errors related to missing stubs or types, follow 
+
+          If you encounter errors related to missing stubs or types, follow
           these steps:
-          
+
           1. **Add Type Stubs:**
-            
+
             Install type stubs for the affected packages using Poetry:
-            
+
             ```bash
             poetry add types-<package> --group=types
             ```
-            
+
             *Example:*
-            
+
             ```bash
             poetry add types-requests --group=types
             ```
-            
+
             Alternatively, you can install stub packages if available:
-            
+
             ```bash
             poetry add <package>-stub --group=types
             ```
-            
+
             *Example:*
-            
+
             ```bash
             poetry add requests-stubs --group=types
             ```
-          
+
           2. **Manual Stub Creation:**
-            
+
             If the package does not provide official stubs or if they are named
-            differently, you may need to create custom stubs or search for 
+            differently, you may need to create custom stubs or search for
             third-party stubs.
-            
-            - **Search for Stubs:** Look for community-maintained stubs on 
-              repositories like [Typeshed](https://github.com/python/typeshed) 
+
+            - **Search for Stubs:** Look for community-maintained stubs on
+              repositories like [Typeshed](https://github.com/python/typeshed)
               or [Stub Packages](https://pypi.org/search/?q=stub).
-          
+
           3. **Update `pyproject.toml`:**
-            
-            Ensure your `pyproject.toml` includes the `types` group for 
+
+            Ensure your `pyproject.toml` includes the `types` group for
             type stubs:
-            
+
             ```toml
             [tool.poetry.group.types.dependencies]
             types-<package> = "^<version>"
             ```
-            
+
             *Example:*
-            
+
             ```toml
             [tool.poetry.group.types.dependencies]
             types-requests = "^2.25.11"
             ```
-          
+
           </details>
-          
+
           <details>
           <summary>Ignoring Specific Errors</summary>
-          
+
           If certain type errors are not relevant or are false positives, you
-          can configure **mypy** to ignore them. Add the module names under the 
+          can configure **mypy** to ignore them. Add the module names under the
           `[tool.mypy.overrides]` section in your `pyproject.toml`:
-          
+
           ```toml
           [[tool.mypy.overrides]]
           ignore_missing_imports = true
@@ -197,13 +197,13 @@ runs:
             "connexion.*",
           ]
           ```
-          
-          - **Granular Ignoring:** To avoid ignoring all errors, specify the 
-            modules as granularly as possible. For instance, if you are using `x.y.z` 
+
+          - **Granular Ignoring:** To avoid ignoring all errors, specify the
+            modules as granularly as possible. For instance, if you are using `x.y.z`
             imports, add `x.y.z.*` instead of `x.*`.
-          
+
           *Example:*
-          
+
           ```toml
           [[tool.mypy.overrides]]
           ignore_missing_imports = true
@@ -212,18 +212,13 @@ runs:
             "connexion.server.*",
           ]
           ```
-          
-          **Best Practices:**
-          
-          - **Minimize Ignores:** Only ignore errors that you have verified as non-issues to maintain type safety.
-          - **Document Reasons:** Clearly comment on why each error is being ignored to aid future maintenance.
-          
+
           </details>
-          
+
           ---
-          
+
           ### **🔗 Useful Resources**
-          
+
           - [Mypy Documentation](https://mypy.readthedocs.io/en/stable/)
           - [Typeshed Repository](https://github.com/python/typeshed)
           - [Best Practices for Type Checking](https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html)

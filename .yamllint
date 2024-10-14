@@ -9,6 +9,7 @@ rules:
   # Additional rules can be configured as needed
   line-length:
     max: 120
+    level: warning
   indentation:
     spaces: 2
   document-start: disable

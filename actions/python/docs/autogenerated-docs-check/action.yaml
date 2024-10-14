@@ -8,15 +8,15 @@ inputs:
     description: The operating system to use
     required: false
   python_version:
-    default: '3.12'
+    default: "3.12"
     description: The version of Python to use
     required: false
   poetry_install_options:
-    default: '--with=docs --with=types --no-root'
+    default: --with=docs --with=types --no-root
     description: Options to pass to poetry install
     required: false
   poetry_export_options:
-    default: '--with=docs --with=types'
+    default: --with=docs --with=types
     description: Options to pass to poetry export for cache invalidation
     required: false
   file_path:
@@ -26,7 +26,7 @@ inputs:
   auto_doc_dir:
     description: Directory path that stores all the auto generated docs for
       the packages
-    default: '/docs/source/pages'
+    default: /docs/source/pages
     required: false
 
 runs:
@@ -59,7 +59,7 @@ runs:
 
           Hi @${{ inputs.username }},
 
-          The **`docs check`** CI has encountered a failure during the 
+          The **`docs check`** CI has encountered a failure during the
           **`setup`** step.
 
           **Action Required:**
@@ -100,7 +100,7 @@ runs:
         issue_number: ${{ github.event.number }}
         username: ${{ github.actor}}
         message: |
-          Couldn't retrieve project name from `pyproject.toml` and 
+          Couldn't retrieve project name from `pyproject.toml` and
           `file_path`` is not provided for the workflow.
 
     - name: Generate API docs
@@ -137,56 +137,56 @@ runs:
         username: ${{ github.actor}}
         message: |
           **🔧 API Documentation Outdated**
-          
+
           Hi @${{ inputs.username }},
-          
-          The **API documentation** in the PR is outdated and needs to be 
+
+          The **API documentation** in the PR is outdated and needs to be
           refreshed to reflect recent changes in the codebase.
-          
+
           ---
-          
+
           ### **📌 Action Required**
-          
+
           Please update the API documentation by following these steps:
-          
+
           1. **Run Sphinx-Apidoc:**
-            
+
             Execute the following command to regenerate the API documentation:
-            
+
             ```bash
             poetry run sphinx-apidoc ${{ env.file_path }}
             ```
-          
+
           2. **Verify Documentation:**
-            
-            After running the command, review the generated documentation to 
+
+            After running the command, review the generated documentation to
             ensure it accurately represents the current state of your codebase.
-          
+
           ---
-          
+
           ### **ℹ️ Additional Information**
-          
+
           <details>
           <summary>Using the Makefile Command</summary>
-          
-          For convenience, you can use the predefined Makefile command to 
+
+          For convenience, you can use the predefined Makefile command to
           update the documentation:
-          
+
           ```bash
           make docs
           ```
-          
+
           This command utilizes the `sphinx-apidoc` tool to regenerate the API
           documentation based on your project's configuration.
-          
-          **Note:** The default Makefile from the Cookiecutter template 
-          includes the `make docs` command. Ensure you are in the root 
+
+          **Note:** The default Makefile from the Cookiecutter template
+          includes the `make docs` command. Ensure you are in the root
           directory of your project before running this command.
-          
+
           </details>
-          
+
           ---
-          
+
           ### **🔗 Useful Resources**
-          
+
           - [Sphinx-Apidoc Documentation](https://www.sphinx-doc.org/en/master/man/sphinx-apidoc.html)

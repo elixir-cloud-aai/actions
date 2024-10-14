@@ -2,7 +2,7 @@
 name: Commenting bot to report CI failures
 description: |
   This action is used to comment on a pull request with the CI failure details.
-  It checks if the comment is already present and updates the comment with the 
+  It checks if the comment is already present and updates the comment with the
   latest CI failure details.
 
 inputs:
@@ -15,7 +15,7 @@ inputs:
   error_after_comment:
     description: Stop the workflow after commenting
     required: false
-    default: 'true'
+    default: "true"
   issue_number:
     description: The issue number to comment on
     required: true
@@ -35,7 +35,8 @@ runs:
     - name: Create the title of the comment
       id: globals
       shell: bash
-      run: echo "TITLE=Hey @$INPUT_USERNAME, \`$INPUT_CI_NAME\` CI failed at \`$INPUT_STEP_NAME\` step!" >> "${GITHUB_OUTPUT}"
+      run: |
+        echo "TITLE=Hey @$INPUT_USERNAME, \`$INPUT_CI_NAME\` CI failed at \`$INPUT_STEP_NAME\` step!" >> "${GITHUB_OUTPUT}"
       env:
         INPUT_USERNAME: ${{ inputs.username }}
         INPUT_CI_NAME: ${{ inputs.ci_name }}
@@ -46,7 +47,7 @@ runs:
       id: find-comment
       with:
         issue_number: ${{ inputs.issue_number }}
-        comment-author: 'github-actions[bot]'
+        comment-author: github-actions[bot]
         body-includes: ${{ steps.globals.outputs.TITLE }}
 
     - name: Create a new comment if there hasn't been one

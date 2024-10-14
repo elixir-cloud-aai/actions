@@ -25,7 +25,7 @@ inputs:
   poetry_export_options:
     default: ""
     description: >
-      Options to pass to poetry export for hash generation for cache 
+      Options to pass to poetry export for hash generation for cache
       invalidation
 
 runs:
@@ -85,10 +85,10 @@ runs:
         if [ -n "${{ inputs.dependencies }}" ]; then
           # Generate hash from dependencies list
           echo "DEP_HASH=$(
-            echo '${{ inputs.dependencies }}' | 
-            tr ',' '\n' | 
-            sort | 
-            sha256sum | 
+            echo '${{ inputs.dependencies }}' |
+            tr ',' '\n' |
+            sort |
+            sha256sum |
             cut -d ' ' -f1
           )" >> $GITHUB_ENV
         else
@@ -104,7 +104,7 @@ runs:
             --output=requirements.txt
           fi
           echo "DEP_HASH=$(
-            sha256sum requirements.txt | 
+            sha256sum requirements.txt |
             cut -d ' ' -f 1
           )" >> $GITHUB_ENV
         fi
@@ -121,7 +121,7 @@ runs:
           py${{ inputs.python_version }}-
           hash${{ env.DEP_HASH }}
 
-    - name: Install dependencies 
+    - name: Install dependencies
       if: ${{ inputs.dependencies != '' && steps.poetry-dep-cache.outputs.cache-hit != 'true' }}
       shell: bash
       run: |

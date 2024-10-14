@@ -9,17 +9,17 @@ inputs:
     required: false
   python_version:
     description: Python version to use
-    default: '3.12'
+    default: "3.12"
     required: false
   poetry_install_options:
     description: Options for installing dependencies via poetry
     required: false
-    default: '--only=code_quality --no-root'
+    default: --only=code_quality --no-root
   poetry_export_options:
     description: Options for exporting dependencies to check for hash
       changes for cache invalidation
     required: false
-    default: '--only=code_quality'
+    default: --only=code_quality
 
 runs:
   using: composite
@@ -50,7 +50,7 @@ runs:
 
           Hi @${{ inputs.username }},
 
-          The **`lint`** CI has encountered a failure during the 
+          The **`lint`** CI has encountered a failure during the
           **`setup`** step.
 
           **Action Required:**
@@ -85,48 +85,47 @@ runs:
         username: ${{ github.actor}}
         message: |
           **🐍 Linting Issues Detected: Ruff Analysis**
-          
+
           Hi @${{ inputs.username }},
-          
+
           The **Ruff** linter has identified issues in your codebase.
-          
+
           ---
-          
+
           ### **📌 Action Required**
-          
+
           1. **Run Ruff Locally:**
-             
-             Execute the following command to check and automatically fix 
+
+             Execute the following command to check and automatically fix
              linting issues:
-             
+
              ```bash
              poetry run ruff check --fix ${{ inputs.file_path }}
-            
+
           ---
-          
+
           ### **ℹ️ Additional Information**
-          
+
           <details>
           <summary>Using the Makefile Command</summary>
-          
+
           For convenience, you can use the predefined Makefile command to run Ruff:
-          
+
           ```bash
           make fl
           ```
-          
+
           **Note:**
           - Ensure you are in the root directory of your project before running
             this command.
-          - The default Makefile from the Cookiecutter template includes the 
+          - The default Makefile from the Cookiecutter template includes the
             `make fl` command. You can view all available Makefile commands by
             running `make` without any arguments.
-          
+
           </details>
-          
+
           ---
-          
+
           ### **🔗 Useful Resources**
-          
+
           - [Ruff Documentation](https://docs.astral.sh/ruff/)
-    

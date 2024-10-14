@@ -8,15 +8,15 @@ inputs:
     description: The operating system to use
     required: false
   python_version:
-    default: '3.12'
+    default: "3.12"
     description: The version of Python to use
     required: false
   poetry_install_options:
-    default: '--with=test'
+    default: --with=test
     description: Options for installing dependencies via poetry
     required: false
   poetry_export_options:
-    default: '--with=test'
+    default: --with=test
     description: Options for exporting dependencies for cache invalidation
     required: false
   codecov_token:
@@ -25,7 +25,7 @@ inputs:
   file_path:
     description: The path to the file or directory to integration test
     required: false
-    default: 'tests/test_integration'
+    default: tests/test_integration
 
 runs:
   using: composite
@@ -57,7 +57,7 @@ runs:
 
           Hi @${{ inputs.username }},
 
-          The **`integration test`** CI has encountered a failure during the 
+          The **`integration test`** CI has encountered a failure during the
           **`setup`** step.
 
           **Action Required:**
@@ -97,46 +97,42 @@ runs:
         username: ${{ github.actor}}
         message: |
           **🧪 Unit Tests and Dependency Check Failed**
-          
+
           Hi @${{ inputs.username }},
-          
+
           The **integration tests** in have encountered failures.
-          
+
           ---
-          
+
           ### **📌 Action Required**
-          
+
           Please address the following to resolve the issues:
-          
+
           1. **Review integration Tests:**
-             
+
              - **File Path:** `${{ inputs.file_path }}`
-             - Examine the failing integration tests to identify the root 
+             - Examine the failing integration tests to identify the root
               cause of the failures.
-          
+
           2. **Check Dependencies:**
-             
+
              - Open your `pyproject.toml` file.
-             - Ensure that all dependencies are correctly specified and 
+             - Ensure that all dependencies are correctly specified and
               there are no version conflicts or missing packages.
-          
+
           3. **Run Tests Locally:**
-             
-             Execute the following command to run the unit tests and view 
+
+             Execute the following command to run the unit tests and view
              detailed error reports:
-             
+
              ```bash
              poetry run pytest --cov=${{ inputs.file_path }}
              ```
 
           ---
-          
-          ### **ℹ️ Additional Information**
-          
-          ---
-          
+
           ### **🔗 Useful Resources**
-          
+
           - [Pytest Documentation](https://docs.pytest.org/en/latest/)
           - [Best Practices for Writing Tests](https://docs.pytest.org/en/latest/goodpractices.html)
 
@@ -161,28 +157,28 @@ runs:
         username: ${{ github.actor}}
         message: |
           **🚨 Codecov Token Missing**
-          
+
           Hi @${{ inputs.username }},
-          
-          The **Codecov** token is missing from your repository's secrets. As 
-          a result, the coverage report was successfully generated but **was not 
+
+          The **Codecov** token is missing from your repository's secrets. As
+          a result, the coverage report was successfully generated but **was not
           uploaded** to Codecov.
-          
+
           ---
-          
+
           ### **📌 Action Required**
-          
+
           To ensure that coverage reports are uploaded correctly in future runs,
           please follow these steps:
-          
+
           1. **Obtain the Codecov Token:**
-            
-            - If you do not have the Codecov token, you can retrieve it from 
+
+            - If you do not have the Codecov token, you can retrieve it from
               [Codecov account](https://codecov.io/).
             - Navigate to repository settings within Codecov to find the token.
-          
+
           2. **Add the Token to GitHub Secrets:**
-            
+
             - Go to your GitHub repository.
             - Click on **Settings** > **Secrets and variables** > **Actions**.
             - Click on **New repository secret**.
@@ -190,18 +186,18 @@ runs:
               - **Name:** `CODECOV_TOKEN`
               - **Value:** *Your Codecov token*
             - Click **Add secret** to save.
-          
+
           3. **Verify the Setup:**
-            
-            - After adding the secret, trigger the workflow again to ensure 
+
+            - After adding the secret, trigger the workflow again to ensure
               that the coverage report is uploaded successfully.
-            - Check the GitHub Actions logs and Codecov dashboard for 
+            - Check the GitHub Actions logs and Codecov dashboard for
               confirmation.
-          
+
           ---
-          
+
           ### **🔗 Useful Resources**
-          
+
           - [Codecov Documentation](https://docs.codecov.io/docs)
           - [GitHub Actions Secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets)
           - [Managing Secrets in GitHub](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository)
