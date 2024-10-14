@@ -222,3 +222,4 @@ runs:
           - [Mypy Documentation](https://mypy.readthedocs.io/en/stable/)
           - [Typeshed Repository](https://github.com/python/typeshed)
           - [Best Practices for Type Checking](https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html)
+...
