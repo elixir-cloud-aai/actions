@@ -48,16 +48,28 @@ runs:
         issue_number: ${{ github.event.number }}
         username: ${{ github.actor}}
         message: |
-          Check your `pyproject.toml` and the dependency groups in them,
-          especially the `code_quality` group.
+          **🚨 CI Failure: Setup Step**
 
+          Hi @${{ inputs.username }},
+
+          The **`format`** CI has encountered a failure during the 
+          **`setup`** step.
+
+          **Action Required:**
+          Please review your `pyproject.toml` file to ensure that the dependency groups,
+          especially the `code_quality` group, are correctly defined.
+
+          **Environment Details:**
           <details>
-          <summary>Env used for CI</summary>
-            OS: ${{ inputs.os }}
-            Python Version: ${{ inputs.python_version }}
-            Poetry Install Options: ${{ inputs.poetry_install_options }}
-            Poetry Export Options: ${{ inputs.poetry_export_options }}
+          <summary>Enviroment</summary>
+          - **Operating System:** ${{ inputs.os }}
+          - **Python Version:** ${{ inputs.python_version }}
+          - **Poetry Install Options:** `${{ inputs.poetry_install_options }}`
+          - **Poetry Export Options:** `${{ inputs.poetry_export_options }}`
           </details>
+
+          If you need assistance, please refer to the [Poetry documentation](https://python-poetry.org/docs/),
+          or reach out to the maintainers.
 
     - name: Check code style
       id: format
@@ -75,14 +87,50 @@ runs:
         issue_number: ${{ github.event.number }}
         username: ${{ github.actor}}
         message: |
-          With the environment set up and dependencies installed, 
-          run `poetry run ruff format` to check and fix some code style issues.
+          **🐍 Linting Issues Detected: Ruff Analysis**
+          
+          Hi @${{ inputs.username }},
+          
+          The **Ruff** linter has identified code style issues in the PR. 
+          
+          ---
+          
+          ### **📌 Action Required**
+          
+          1. **Run Ruff Locally:**
+             
+             Execute the following command to check and automatically fix 
+             linting issues:
+             
+             ```bash
+             poetry run ruff format ${{ inputs.file_path }}
+             ```
 
+          ---
+          
+          ### **ℹ️ Additional Information**
+          
           <details>
-          <summary>Use Makefile command</summary>
-            Default makefile from cookiecutter template has a command 
-            `make fl` to run the check.
-
-            Run make in the root directory of the project, to see all the 
-            available commands.
+          <summary>Using the Makefile Command</summary>
+          
+          For convenience, you can use the predefined Makefile command 
+          to run Ruff:
+          
+          ```bash
+          make fl
+          ```
+          
+          **Note:**
+          - Ensure you are in the root directory of your project before 
+            running this command.
+          - The default Makefile from the Cookiecutter template includes 
+            the `make fl` command. You can view all available Makefile commands
+            by running `make` without any arguments.
+          
           </details>
+          
+          ---
+          
+          ### **🔗 Useful Resources**
+          
+          - [Ruff Documentation](https://docs.astral.sh/ruff/)

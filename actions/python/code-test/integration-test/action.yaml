@@ -53,16 +53,28 @@ runs:
         issue_number: ${{ github.event.number }}
         username: ${{ github.actor}}
         message: |
-          Test depend on the main package dependecies and `test`
-          group in `pyproject.toml`.
+          **🚨 CI Failure: Setup Step**
 
+          Hi @${{ inputs.username }},
+
+          The **`integration test`** CI has encountered a failure during the 
+          **`setup`** step.
+
+          **Action Required:**
+          Please review your `pyproject.toml` file to ensure that the dependency groups,
+          especially the `test` and `main` groups, are correctly defined.
+
+          **Environment Details:**
           <details>
-          <summary>Env used for CI</summary>
-            OS: ${{ inputs.os }}
-            Python Version: ${{ inputs.python_version }}
-            Poetry Install Options: ${{ inputs.poetry_install_options }}
-            Poetry Export Options: ${{ inputs.poetry_export_options }}
+          <summary>Enviroment</summary>
+          - **Operating System:** ${{ inputs.os }}
+          - **Python Version:** ${{ inputs.python_version }}
+          - **Poetry Install Options:** `${{ inputs.poetry_install_options }}`
+          - **Poetry Export Options:** `${{ inputs.poetry_export_options }}`
           </details>
+
+          If you need assistance, please refer to the [Poetry documentation](https://python-poetry.org/docs/),
+          or reach out to the maintainers.
 
     - name: Run integration tests and generate coverage report
       id: test
@@ -84,10 +96,49 @@ runs:
         issue_number: ${{ github.event.number }}
         username: ${{ github.actor}}
         message: |
-          Check your integration tests in ${{ inputs.file_path }},
-          and the dependencies in `pyproject.toml`. 
+          **🧪 Unit Tests and Dependency Check Failed**
+          
+          Hi @${{ inputs.username }},
+          
+          The **integration tests** in have encountered failures.
+          
+          ---
+          
+          ### **📌 Action Required**
+          
+          Please address the following to resolve the issues:
+          
+          1. **Review integration Tests:**
+             
+             - **File Path:** `${{ inputs.file_path }}`
+             - Examine the failing integration tests to identify the root 
+              cause of the failures.
+          
+          2. **Check Dependencies:**
+             
+             - Open your `pyproject.toml` file.
+             - Ensure that all dependencies are correctly specified and 
+              there are no version conflicts or missing packages.
+          
+          3. **Run Tests Locally:**
+             
+             Execute the following command to run the unit tests and view 
+             detailed error reports:
+             
+             ```bash
+             poetry run pytest --cov=${{ inputs.file_path }}
+             ```
 
-          Run `poetry run pytest --cov=${{ inputs.file_path }}` to see the errors.
+          ---
+          
+          ### **ℹ️ Additional Information**
+          
+          ---
+          
+          ### **🔗 Useful Resources**
+          
+          - [Pytest Documentation](https://docs.pytest.org/en/latest/)
+          - [Best Practices for Writing Tests](https://docs.pytest.org/en/latest/goodpractices.html)
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
@@ -109,5 +160,48 @@ runs:
         issue_number: ${{ github.event.number }}
         username: ${{ github.actor}}
         message: |
-          Codecov token is missing. Please ask admin to add the token to the 
-          secrets. The coverage report was generated but not uploaded.
+          **🚨 Codecov Token Missing**
+          
+          Hi @${{ inputs.username }},
+          
+          The **Codecov** token is missing from your repository's secrets. As 
+          a result, the coverage report was successfully generated but **was not 
+          uploaded** to Codecov.
+          
+          ---
+          
+          ### **📌 Action Required**
+          
+          To ensure that coverage reports are uploaded correctly in future runs,
+          please follow these steps:
+          
+          1. **Obtain the Codecov Token:**
+            
+            - If you do not have the Codecov token, you can retrieve it from 
+              [Codecov account](https://codecov.io/).
+            - Navigate to repository settings within Codecov to find the token.
+          
+          2. **Add the Token to GitHub Secrets:**
+            
+            - Go to your GitHub repository.
+            - Click on **Settings** > **Secrets and variables** > **Actions**.
+            - Click on **New repository secret**.
+            - Enter the following details:
+              - **Name:** `CODECOV_TOKEN`
+              - **Value:** *Your Codecov token*
+            - Click **Add secret** to save.
+          
+          3. **Verify the Setup:**
+            
+            - After adding the secret, trigger the workflow again to ensure 
+              that the coverage report is uploaded successfully.
+            - Check the GitHub Actions logs and Codecov dashboard for 
+              confirmation.
+          
+          ---
+          
+          ### **🔗 Useful Resources**
+          
+          - [Codecov Documentation](https://docs.codecov.io/docs)
+          - [GitHub Actions Secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets)
+          - [Managing Secrets in GitHub](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository)

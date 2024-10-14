@@ -59,15 +59,6 @@ runs:
           ${{ steps.globals.outputs.TITLE }}
           ${{ inputs.message }}
 
-    - name: Update the comment, to remind user
-      if: steps.find-comment.outputs.comment-id != ''
-      uses: peter-evans/create-or-update-comment@v4
-      with:
-        comment-id: ${{ steps.find-comment.outputs.comment-id }}
-        issue_number: ${{ inputs.issue_number }}
-        body: |
-          Hey @${{ inputs.username }}, it failed again for commit ${{ inputs.commit_id }}!
-
     - name: Fail or pass the workflow based on the input
       shell: bash
       run: |

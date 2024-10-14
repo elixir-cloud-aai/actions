@@ -55,16 +55,28 @@ runs:
         issue_number: ${{ github.event.number }}
         username: ${{ github.actor}}
         message: |
-          Check your `pyproject.toml` and the dependency groups in them,
-          especially `docs` and `types` group.
+          **🚨 CI Failure: Setup Step**
 
+          Hi @${{ inputs.username }},
+
+          The **`docs check`** CI has encountered a failure during the 
+          **`setup`** step.
+
+          **Action Required:**
+          Please review your `pyproject.toml` file to ensure that the dependency groups,
+          especially the `docs`, `main` and `types` group, are correctly defined.
+
+          **Environment Details:**
           <details>
-          <summary>Env used for CI</summary>
-            OS: ${{ inputs.os }}
-            Python Version: ${{ inputs.python_version }}
-            Poetry Install Options: ${{ inputs.poetry_install_options }}
-            Poetry Export Options: ${{ inputs.poetry_export_options }}
+          <summary>Enviroment</summary>
+          - **Operating System:** ${{ inputs.os }}
+          - **Python Version:** ${{ inputs.python_version }}
+          - **Poetry Install Options:** `${{ inputs.poetry_install_options }}`
+          - **Poetry Export Options:** `${{ inputs.poetry_export_options }}`
           </details>
+
+          If you need assistance, please refer to the [Poetry documentation](https://python-poetry.org/docs/),
+          or reach out to the maintainers.
 
     - name: Get the file_path if user doesn't provide it
       id: get-file-path
@@ -124,14 +136,57 @@ runs:
         issue_number: ${{ github.event.number }}
         username: ${{ github.actor}}
         message: |
-          API documentation is out of date. Run 
-          `poetry run sphinx-apidoc ${{ env.file_path }}` to update the docs.
-
-          Note: You can also delete the auto generated docs and regenerate 
-          them if there has been a major change in the codebase.
-
+          **🔧 API Documentation Outdated**
+          
+          Hi @${{ inputs.username }},
+          
+          The **API documentation** in the PR is outdated and needs to be 
+          refreshed to reflect recent changes in the codebase.
+          
+          ---
+          
+          ### **📌 Action Required**
+          
+          Please update the API documentation by following these steps:
+          
+          1. **Run Sphinx-Apidoc:**
+            
+            Execute the following command to regenerate the API documentation:
+            
+            ```bash
+            poetry run sphinx-apidoc ${{ env.file_path }}
+            ```
+          
+          2. **Verify Documentation:**
+            
+            After running the command, review the generated documentation to 
+            ensure it accurately represents the current state of your codebase.
+          
+          ---
+          
+          ### **ℹ️ Additional Information**
+          
           <details>
-          <summary>Use Makefile command</summary>
-            Default makefile from cookiecutter template has a command 
-            `make docs` to run the sphinx-apidoc.
+          <summary>Using the Makefile Command</summary>
+          
+          For convenience, you can use the predefined Makefile command to 
+          update the documentation:
+          
+          ```bash
+          make docs
+          ```
+          
+          This command utilizes the `sphinx-apidoc` tool to regenerate the API
+          documentation based on your project's configuration.
+          
+          **Note:** The default Makefile from the Cookiecutter template 
+          includes the `make docs` command. Ensure you are in the root 
+          directory of your project before running this command.
+          
           </details>
+          
+          ---
+          
+          ### **🔗 Useful Resources**
+          
+          - [Sphinx-Apidoc Documentation](https://www.sphinx-doc.org/en/master/man/sphinx-apidoc.html)
